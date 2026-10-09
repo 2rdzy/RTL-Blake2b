@@ -1,8 +1,8 @@
 name: Export Repo Traffic to Google Sheets
 
+# DISABLED in this fork: needs upstream Google Sheets secrets (GOOGLE_SHEETS_CREDENTIALS, GH_TOKEN); the nightly schedule was removed.
+# Re-enable steps are in .github/TODO-re-enable-workflows.md.
 on:
-  schedule:
-    - cron: '0 2 * * *'
   workflow_dispatch:
 
 jobs:

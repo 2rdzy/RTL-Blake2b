@@ -1,8 +1,8 @@
 name: Build docker images
 
+# DISABLED in this fork: needs Docker Hub credentials and an image name of our own; the tag trigger was removed.
+# Re-enable steps are in .github/TODO-re-enable-workflows.md.
 on:
-  push:
-    tags: [ 'v*' ]
   workflow_dispatch:
     inputs:
       version:

@@ -1,11 +1,10 @@
   name: rtlreviewbot
 
+  # DISABLED in this fork: calls the upstream bot with upstream GitHub App secrets; the comment and review triggers were removed.
+  # Re-enable steps are in .github/TODO-re-enable-workflows.md.
   on:
-    issue_comment:
-      types: [created]
-    pull_request:
-      types: [review_requested, closed]
-
+    workflow_dispatch:
+  
   permissions:
     contents: read
   
