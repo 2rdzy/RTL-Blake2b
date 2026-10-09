@@ -11,13 +11,13 @@
         <div fxLayout="column" fxLayoutAlign="start stretch">
           <div fxFlex="100" class="alert alert-warn">
             <fa-icon class="mr-1 alert-icon" [icon]="faExclamationTriangle" />
-            <span>Configure your own blockchain explorer url or <strong><a href="https://mempool.space/" target="blank">mempool.space</a></strong> will be used.</span>
+            <span>Configure your own blockchain explorer url or <strong><a href="https://mempool.kilombino.com/" target="blank">mempool.kilombino.com</a></strong> will be used.</span>
           </div>
           <div fxLayout="row wrap" fxLayoutAlign="start center">
             <mat-form-field fxLayout="column" fxFlex="100">
               <mat-label>Block Explorer URL</mat-label>
               <input matInput name="blockExplorerUrl" [(ngModel)]="selNode.settings.blockExplorerUrl">
-              <mat-hint>Blockchain explorer URL, eg. https://mempool.space or https://blockstream.info</mat-hint>
+              <mat-hint>Blockchain explorer URL, eg. https://mempool.kilombino.com</mat-hint>
             </mat-form-field>
           </div>
         </div>

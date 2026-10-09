@@ -192,6 +192,8 @@ export class CommonService {
                     node.settings = (node.settings || {});
                     node.settings.lnServerUrl = runtimeNode.settings?.lnServerUrl;
                     node.settings.swapServerUrl = runtimeNode.settings?.swapServerUrl;
+                    // The price source is an outbound request target, so it is server-held like the URLs above.
+                    node.settings.fiatRatesUrl = runtimeNode.settings?.fiatRatesUrl;
                     // Boltz support was removed in 0.15.13 (#1724): its two anchors are no longer held by
                     // the server, so whatever a client sends for them is dropped rather than stored.
                     delete node.authentication.boltzMacaroonPath;
@@ -217,6 +219,7 @@ export class CommonService {
                     if (node.settings) {
                         delete node.settings.lnServerUrl;
                         delete node.settings.swapServerUrl;
+                        delete node.settings.fiatRatesUrl;
                         delete node.settings.boltzServerUrl;
                         delete node.settings.bitcoindConfigPath;
                         delete node.settings.channelBackupPath;

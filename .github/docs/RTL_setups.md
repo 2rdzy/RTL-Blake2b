@@ -42,7 +42,7 @@ If your running RTL and LND on different devices on your local LAN, certain conf
         "unannouncedChannels": false,
         "lnServerUrl": "<https://<ip-address-of-device-running-lnd>:8080; e.g. https://192.168.0.1:8080>",
         "swapServerUrl": "<https://<localhost>:8081>",
-        "blockExplorerUrl": "<Default: https://mempool.space>"
+        "blockExplorerUrl": "<Default: https://mempool.kilombino.com>"
       }
     }
   ]

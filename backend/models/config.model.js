@@ -7,10 +7,11 @@ export class SSO {
     }
 }
 export class Settings {
-    constructor(blockExplorerUrl, lnServerUrl, swapServerUrl, bitcoindConfigPath, channelBackupPath, logLevel, logFile, userPersona, themeMode, themeColor, unannouncedChannels, fiatConversion, currencyUnit, enableOffers, enablePeerswap) {
+    constructor(blockExplorerUrl, lnServerUrl, swapServerUrl, fiatRatesUrl, bitcoindConfigPath, channelBackupPath, logLevel, logFile, userPersona, themeMode, themeColor, unannouncedChannels, fiatConversion, currencyUnit, enableOffers, enablePeerswap) {
         this.blockExplorerUrl = blockExplorerUrl;
         this.lnServerUrl = lnServerUrl;
         this.swapServerUrl = swapServerUrl;
+        this.fiatRatesUrl = fiatRatesUrl;
         this.bitcoindConfigPath = bitcoindConfigPath;
         this.channelBackupPath = channelBackupPath;
         this.logLevel = logLevel;

@@ -77,26 +77,66 @@ const filterNodeSettings = (settings) => {
   }
   return allowed;
 };
-// Remember, per node, which block explorer answered the last call: the node's own once
-// its REST API suite has worked, mempool.space after a failure. Keyed by node index so one
-// node's explorer (or its fallback) is never reused for another node or session.
-const explorerUrlByNode = new Map();
-const explorerBaseUrl = (req) => explorerUrlByNode.get(req.session.selectedNode.index) || req.session.selectedNode.settings.blockExplorerUrl;
+// This chain has its own explorer and its own market price, and neither is available from
+// mempool.space or blockchain.info: those describe Bitcoin, so using them as a fallback would
+// show another chain's fees and prices. Both sources are configurable and there is no fallback
+// to a different chain. The explorer comes from the node's blockExplorerUrl setting
+// (BLOCK_EXPLORER_URL); the price source comes from FIAT_RATES_URL.
+export const DEFAULT_BLOCK_EXPLORER_URL = 'https://mempool.kilombino.com';
+export const DEFAULT_FIAT_RATES_URL = 'https://xbt.live';
+const trimSlashes = (url: string) => url.replace(/\/+$/, '');
+const explorerBaseUrl = (req) => trimSlashes(req.session.selectedNode.settings.blockExplorerUrl || DEFAULT_BLOCK_EXPLORER_URL);
+// The node's fiatRatesUrl setting is already resolved at boot (FIAT_RATES_URL, then RTL-Config.json,
+// then the default); the environment is read again here only for a node that has none.
+export const fiatRatesBaseUrl = (nodeSettings?) => {
+  const configured = [nodeSettings?.fiatRatesUrl, process?.env?.FIAT_RATES_URL].find((url) => url && isValidHttpUrl(url));
+  return trimSlashes(configured || DEFAULT_FIAT_RATES_URL);
+};
+
+// Turn the node's own fee estimate (Core Lightning "feerates" in perkb style) into the shape the
+// explorer returns, in sat/vB. Used when the explorer cannot be reached.
+export const clnFeeRatesToRecommended = (feeRates) => {
+  const perkb = feeRates?.perkb;
+  if (!perkb) { return null; }
+  const toSatVb = (perKb) => Math.max(1, Math.ceil(perKb / 1000));
+  const estimates = (perkb.estimates || []).filter((e) => e && e.feerate > 0).sort((x, y) => x.blockcount - y.blockcount);
+  if (estimates.length === 0) { return null; }
+  const forBlocks = (n) => (estimates.find((e) => e.blockcount >= n) || estimates[estimates.length - 1]).feerate;
+  return {
+    fastestFee: toSatVb(estimates[0].feerate),
+    halfHourFee: toSatVb(forBlocks(3)),
+    hourFee: toSatVb(forBlocks(6)),
+    economyFee: toSatVb(estimates[estimates.length - 1].feerate),
+    minimumFee: toSatVb(perkb.floor || perkb.min_acceptable || estimates[0].feerate)
+  };
+};
+
+const getNodeFeeRates = (req) => {
+  if (req.session.selectedNode.lnImplementation !== 'CLN') { return Promise.reject(new Error('No node fee source for this implementation')); }
+  const nodeOptions = common.getOptions(req);
+  if (nodeOptions.error) { return Promise.reject(new Error(nodeOptions.error)); }
+  nodeOptions.url = req.session.selectedNode.settings.lnServerUrl + '/v1/feerates';
+  nodeOptions.body = { style: 'perkb' };
+  return request.post(nodeOptions).then((body) => {
+    const recommended = clnFeeRatesToRecommended(body);
+    if (!recommended) { throw new Error('Node returned no fee estimates'); }
+    return recommended;
+  });
+};
 
 export const getExplorerFeesRecommended = (req, res, next) => {
   logger.log({ selectedNode: req.session.selectedNode, level: 'INFO', fileName: 'RTLConf', msg: 'Getting Recommended Fee Rates..' });
   options.url = explorerBaseUrl(req) + '/api/v1/fees/recommended';
   request(options).then((body) => {
-    explorerUrlByNode.set(req.session.selectedNode.index, req.session.selectedNode.settings.blockExplorerUrl);
     logger.log({ selectedNode: req.session.selectedNode, level: 'INFO', fileName: 'RTLConf', msg: 'Recommended Fee Rates Received', data: body });
     res.status(200).json(JSON.parse(body));
   }).catch((errRes) => {
-    explorerUrlByNode.set(req.session.selectedNode.index, 'https://mempool.space');
-    options.url = 'https://mempool.space/api/v1/fees/recommended';
-    return request(options).then((body) => {
-      logger.log({ selectedNode: req.session.selectedNode, level: 'INFO', fileName: 'RTLConf', msg: 'Recommended Fee Rates Received', data: body });
-      res.status(200).json(JSON.parse(body));
-    }).catch((errRes) => {
+    logger.log({ selectedNode: req.session.selectedNode, level: 'INFO', fileName: 'RTLConf', msg: 'Block explorer fee rates unavailable, asking the node' });
+    return getNodeFeeRates(req).then((recommended) => {
+      logger.log({ selectedNode: req.session.selectedNode, level: 'INFO', fileName: 'RTLConf', msg: 'Recommended Fee Rates Received From Node', data: recommended });
+      res.status(200).json(recommended);
+    }).catch((nodeErr) => {
+      logger.log({ selectedNode: req.session.selectedNode, level: 'INFO', fileName: 'RTLConf', msg: 'Node fee rates unavailable: ' + (nodeErr?.message || nodeErr?.error || JSON.stringify(nodeErr)) });
       const errMsg = 'Get Recommended Fee Rates Error';
       const err = common.handleError({ statusCode: 500, message: errMsg, error: errRes }, 'RTLConf', errMsg, req.session.selectedNode);
       return res.status(err.statusCode).json({ message: err.error, error: err.error });
@@ -111,29 +151,39 @@ export const getExplorerTransaction = (req, res, next) => {
   const txid = encodeURIComponent(req.params.txid);
   options.url = explorerBaseUrl(req) + '/api/tx/' + txid;
   request(options).then((body) => {
-    explorerUrlByNode.set(req.session.selectedNode.index, req.session.selectedNode.settings.blockExplorerUrl);
     logger.log({ selectedNode: req.session.selectedNode, level: 'INFO', fileName: 'RTLConf', msg: 'Transaction From Block Explorer Received', data: body });
     res.status(200).json(JSON.parse(body));
   }).catch((errRes) => {
-    explorerUrlByNode.set(req.session.selectedNode.index, 'https://mempool.space');
-    options.url = 'https://mempool.space/api/tx/' + txid;
-    return request(options).then((body) => {
-      logger.log({ selectedNode: req.session.selectedNode, level: 'INFO', fileName: 'RTLConf', msg: 'Transaction From Block Explorer Received', data: body });
-      res.status(200).json(JSON.parse(body));
-    }).catch((errRes) => {
-      const errMsg = 'Get Transaction From Block Explorer Error';
-      const err = common.handleError({ statusCode: 500, message: errMsg, error: errRes }, 'RTLConf', errMsg, req.session.selectedNode);
-      return res.status(err.statusCode).json({ message: err.error, error: err.error });
-    });
+    const errMsg = 'Get Transaction From Block Explorer Error';
+    const err = common.handleError({ statusCode: 500, message: errMsg, error: errRes }, 'RTLConf', errMsg, req.session.selectedNode);
+    return res.status(err.statusCode).json({ message: err.error, error: err.error });
   });
+};
+
+// The price source answers { time, USD: 940.24, EUR: ... } (price of one coin per currency). The
+// app expects the blockchain.info shape, { USD: { last, buy, sell, '15m', symbol } }, so convert,
+// and pass a reply that already has that shape through unchanged.
+export const normalizeCurrencyRates = (body) => {
+  const rates = {};
+  Object.entries(body || {}).forEach(([currency, value]: [string, any]) => {
+    if (!(/^[A-Z]{3,5}$/).test(currency)) { return; }
+    if (typeof value === 'number' && isFinite(value)) {
+      rates[currency] = { '15m': value, last: value, buy: value, sell: value, symbol: currency };
+    } else if (value && typeof value === 'object' && typeof value.last === 'number') {
+      rates[currency] = value;
+    }
+  });
+  return rates;
 };
 
 export const getCurrencyRates = (req, res, next) => {
   logger.log({ selectedNode: req.session.selectedNode, level: 'INFO', fileName: 'RTLConf', msg: 'Getting Currency Rates..' });
-  options.url = 'https://blockchain.info/ticker';
+  options.url = fiatRatesBaseUrl(req.session.selectedNode.settings) + '/api/v1/prices';
   request(options).then((body) => {
-    logger.log({ selectedNode: req.session.selectedNode, level: 'INFO', fileName: 'RTLConf', msg: 'Currency Rates Received', data: body });
-    res.status(200).json(JSON.parse(body));
+    const rates = normalizeCurrencyRates(JSON.parse(body));
+    if (Object.keys(rates).length === 0) { throw new Error('No currency rates in reply'); }
+    logger.log({ selectedNode: req.session.selectedNode, level: 'INFO', fileName: 'RTLConf', msg: 'Currency Rates Received', data: rates });
+    res.status(200).json(rates);
   }).catch((errRes) => {
     const errMsg = 'Get Rates Error';
     const err = common.handleError({ statusCode: 500, message: errMsg, error: errRes }, 'RTLConf', errMsg, req.session.selectedNode);
@@ -214,6 +264,7 @@ export const getApplicationSettings = (req, res, next) => {
       delete appConfData.nodes[selNodeIdx].settings.bitcoindConfigPath;
       delete appConfData.nodes[selNodeIdx].settings.lnServerUrl;
       delete appConfData.nodes[selNodeIdx].settings.swapServerUrl;
+      delete appConfData.nodes[selNodeIdx].settings.fiatRatesUrl;
       delete appConfData.nodes[selNodeIdx].settings.enableOffers;
       delete appConfData.nodes[selNodeIdx].settings.enablePeerswap;
       delete appConfData.nodes[selNodeIdx].settings.channelBackupPath;
@@ -238,8 +289,6 @@ export const updateSelectedNode = (req, res, next) => {
       databaseService.loadDatabase(req.session);
     }
   }
-  // Retry the node's own explorer on the next call after a switch, as before.
-  explorerUrlByNode.delete(req.session.selectedNode.index);
   logger.log({ selectedNode: req.session.selectedNode, level: 'INFO', fileName: 'RTLConf', msg: 'Selected Node Updated To ' + req.session.selectedNode.lnNode || '' });
   res.status(200).json(common.removeAuthSecureData(JSON.parse(JSON.stringify(req.session.selectedNode))));
 };

@@ -17,7 +17,7 @@ export interface RootState {
 const initNodeSettings: Settings = { userPersona: UserPersonaEnum.OPERATOR, themeMode: 'DAY', themeColor: 'PURPLE',
   channelBackupPath: '', selCurrencyUnit: 'USD', unannouncedChannels: false, fiatConversion: false,
   currencyUnits: ['Sats', 'BTC', 'USD'], bitcoindConfigPath: '', enableOffers: false, enablePeerswap: false,
-  logLevel: 'ERROR', lnServerUrl: '', swapServerUrl: '', currencyUnit: 'USD', blockExplorerUrl: 'https://mempool.space' };
+  logLevel: 'ERROR', lnServerUrl: '', swapServerUrl: '', currencyUnit: 'USD', blockExplorerUrl: 'https://mempool.kilombino.com' };
 const initNodeAuthentication: Authentication = { configPath: '', swapMacaroonPath: '' };
 
 export const initRootState: RootState = {

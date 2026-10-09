@@ -15,6 +15,7 @@ export class Settings {
     public blockExplorerUrl: string,
     public lnServerUrl?: string,
     public swapServerUrl?: string,
+    public fiatRatesUrl?: string,
     public bitcoindConfigPath?: string,
     public channelBackupPath?: string,
     public logLevel?: string,
