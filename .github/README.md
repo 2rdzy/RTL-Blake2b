@@ -1,3 +1,11 @@
+## RTL for Blake2b
+
+An unofficial fork of [Ride The Lightning (RTL)](https://github.com/Ride-The-Lightning/RTL) for the Bitcoin
+BLAKE2b chain (BTCB2), the chain followed by Bitcoin Knots from block 961,640. It is meant to run next to the
+BLAKE2b ports of Core Lightning ([privkeyio/lightning](https://github.com/privkeyio/lightning)) and LND
+([paulscode/lightning-fork](https://github.com/paulscode/lightning-fork)). Work in progress; not audited.
+The text below is the upstream RTL README and is not yet adapted to this chain.
+
 ## Ride The Lightning (RTL)
 ![](./screenshots/RTL-LND-Dashboard.png)
 
