@@ -41,7 +41,8 @@ parameters have `default` values for initial setup and can be updated after RTL 
         "unannouncedChannels": <parameter to turn off/on setting for opening announced Channels, default false, Optional>
         "lnServerUrl": "<Service url for LND/Core Lightning REST APIs for the node, e.g. https://192.168.0.1:8080 OR https://192.168.0.1:3001 OR http://192.168.0.1:8080. Default 'https://127.0.0.1:8080', Optional>
         "swapServerUrl": "<Service url for swap server REST APIs for the node, e.g. https://127.0.0.1:8081, Optional>",
-        "blockExplorerUrl": "<url for local or centralized block explorer. e.g. https://mempool.space>"
+        "blockExplorerUrl": "<url for local or centralized block explorer. e.g. https://mempool.kilombino.com>",
+        "fiatRatesUrl": "<Optional: price source for the fiat conversion, read from <url>/api/v1/prices. Default https://xbt.live>"
       }
     }
   ]
@@ -71,6 +72,8 @@ LOGOUT_REDIRECT_LINK (URL to re-direct to after logout/timeout from RTL, Require
 RTL_CONFIG_PATH (Path for the folder containing 'RTL-Config.json' file, Required)<br />
 BITCOIND_CONFIG_PATH (Full path of the bitcoind.conf file including the file name, Optional)<br />
 CHANNEL_BACKUP_PATH (Folder location for saving the channel backup files, valid for LND implementation only, Required if ln implementation=LND else Optional)<br />
+BLOCK_EXPLORER_URL (Block explorer used for transaction links, recommended fee rates and transaction lookups. It must offer the mempool.space API (`/api/v1/fees/recommended`, `/api/tx/<txid>`). Default https://mempool.kilombino.com, Optional)<br />
+FIAT_RATES_URL (Overrides `fiatRatesUrl` in RTL-Config.json. Price source for the fiat conversion, read from `<url>/api/v1/prices`, which answers `{"USD": 940.24, "EUR": 838.93, ...}`. Default https://xbt.live, Optional)<br />
 ENABLE_OFFERS (Boolean flag to enable the offers feature on core lighning, default false, optional)<br />
 ENABLE_PEERSWAP (Boolean flag to enable the peerswap feature on core lighning, default false, optional)<br />
 LN_API_PASSWORD (Password for Eclair implementation if the eclair.conf path is not available, Required if ln implementation=ECL && config path is undefined)<br />

@@ -86,7 +86,7 @@ export class ConfigService {
             lnServerUrl: 'https://127.0.0.1:8080',
             fiatConversion: false,
             unannouncedChannels: false,
-            blockExplorerUrl: 'https://mempool.space'
+            blockExplorerUrl: 'https://mempool.kilombino.com'
           }
         }
       ]
@@ -282,7 +282,9 @@ export class ConfigService {
         this.common.nodes[idx].settings.enablePeerswap = process?.env?.ENABLE_PEERSWAP ? process?.env?.ENABLE_PEERSWAP : (node.settings.enablePeerswap) ? node.settings.enablePeerswap : false;
         this.common.nodes[idx].settings.bitcoindConfigPath = process?.env?.BITCOIND_CONFIG_PATH ? process?.env?.BITCOIND_CONFIG_PATH : (node.settings.bitcoindConfigPath) ? node.settings.bitcoindConfigPath : '';
         this.common.nodes[idx].settings.channelBackupPath = process?.env?.CHANNEL_BACKUP_PATH ? process?.env?.CHANNEL_BACKUP_PATH : (node.settings.channelBackupPath) ? node.settings.channelBackupPath : this.common.appConfig.rtlConfFilePath + sep + 'channels-backup' + sep + 'node-' + node.index;
-        this.common.nodes[idx].settings.blockExplorerUrl = process?.env?.BLOCK_EXPLORER_URL ? process.env.BLOCK_EXPLORER_URL : (node.settings.blockExplorerUrl) ? node.settings.blockExplorerUrl : 'https://mempool.space';
+        const fiatRatesUrl = process?.env?.FIAT_RATES_URL ? process.env.FIAT_RATES_URL : node.settings.fiatRatesUrl;
+        this.common.nodes[idx].settings.fiatRatesUrl = (fiatRatesUrl && (/^https?:\/\//i).test(fiatRatesUrl.trim())) ? fiatRatesUrl.trim() : 'https://xbt.live';
+        this.common.nodes[idx].settings.blockExplorerUrl = process?.env?.BLOCK_EXPLORER_URL ? process.env.BLOCK_EXPLORER_URL : (node.settings.blockExplorerUrl) ? node.settings.blockExplorerUrl : 'https://mempool.kilombino.com';
         try {
           this.common.createDirectory(this.common.nodes[idx].settings.channelBackupPath);
           const exists = fs.existsSync(this.common.nodes[idx].settings.channelBackupPath + sep + 'channel-all.bak');

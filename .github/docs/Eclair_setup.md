@@ -81,7 +81,7 @@ Ensure that the follow values are correct per your config:
         "fiatConversion": false,
         "unannouncedChannels": false,
         "lnServerUrl": "http://<eclair api server ip address>:port",
-        "blockExplorerUrl": "<Default: https://mempool.space>"
+        "blockExplorerUrl": "<Default: https://mempool.kilombino.com>"
       }
     }
   ]

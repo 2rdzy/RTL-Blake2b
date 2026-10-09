@@ -28,7 +28,8 @@
         "swapServerUrl": "https://127.0.0.1:8081",
         "fiatConversion": false,
         "unannouncedChannels": false,
-        "blockExplorerUrl": "https://mempool.space"
+        "blockExplorerUrl": "https://mempool.kilombino.com",
+        "fiatRatesUrl": "https://xbt.live"
       }
     }
   ]

@@ -87,7 +87,7 @@ Ensure that the follow values are correct per your config:
         "fiatConversion": false,
         "unannouncedChannels": false,
         "lnServerUrl": "https://<CLNRest api server ip address>:3001",
-        "blockExplorerUrl": "<Default: https://mempool.space>"
+        "blockExplorerUrl": "<Default: https://mempool.kilombino.com>"
       }
     }
   ]
