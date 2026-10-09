@@ -5,9 +5,9 @@ on:
     tags: [ 'v*' ]
   release:
     types: [released]
-  # Triggers the workflow only when merging pull request to the branches.
+  # Run on every pull request update, so lint and tests gate the merge.
   pull_request:
-    types: [closed]
+    types: [opened, synchronize, reopened]
     branches: [ master, 'Release-*' ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -19,7 +19,6 @@ jobs:
       fail-fast: false
       matrix:
         node-version:
-          - '18.x'
           - '20.x'
           - '22.x'
           - '24.x'
@@ -51,7 +50,6 @@ jobs:
       fail-fast: false
       matrix:
         node-version:
-          - '18.x'
           - '20.x'
           - '22.x'
           - '24.x'
@@ -82,6 +80,13 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - '20.x'
+          - '22.x'
+          - '24.x'
     env:
       CI: true
     steps:

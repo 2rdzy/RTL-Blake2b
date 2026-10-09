@@ -1,16 +1,14 @@
 name: Artifact
 
+# DISABLED in this fork: release artifact job, not yet adapted to this fork; the tag and release triggers were removed.
+# Re-enable steps are in .github/TODO-re-enable-workflows.md.
 on:
-  push:
-    tags: [ 'v*' ]
-  release:
-    types: [released]
   workflow_dispatch:
     inputs:
       version:
         description: 'Release version'
         required: true
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
